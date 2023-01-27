@@ -7,11 +7,12 @@ import "../src/Token.sol";
 contract DevDeployScript is Script {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        string memory baseUri = vm.envString("BASE_URI");
+        string memory contractURI = vm.envString("CONTRACT_URI");
+        string memory tokenURI = vm.envString("TOKEN_URI");
 
         vm.startBroadcast(deployerPrivateKey);
 
-        Token token = new Token(baseUri);
+        Token token = new Token(contractURI, tokenURI);
 
         console.log("Token ERC1155 deployed at:", address(token));
 

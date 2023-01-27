@@ -25,7 +25,7 @@
 /**
  * @dev Emitted when the new URI link was set
  */
-URISet(string URI);
+URISet(string URI); // TODO: событие изменилось
 
 /**
  * @dev Emitted when `value` tokens of token type `id` are transferred from `from` to `to` by `operator`.

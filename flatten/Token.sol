@@ -1903,54 +1903,75 @@ contract Token is ERC1155, AccessControl, Pausable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     mapping(uint256 => bool) private _lockedTokens;
+    string private _contractURI;
+    string private _tokenURI;
 
-    event URISet(string URI);
+    event TokenURISet(string tokenURI);
+    event ContractURISet(string contractURI);
 
-    constructor(string memory _URI) ERC1155(_URI) {
+    constructor(string memory metadataContractURI, string memory metadataTokenURI) ERC1155(metadataTokenURI) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
-        emit URISet(_URI);
+        _contractURI = metadataContractURI;
+        _tokenURI = metadataTokenURI;
+
+        emit TokenURISet(metadataTokenURI);
+        emit ContractURISet(metadataTokenURI);
     }
 
-    function mint(address _to, uint256 _id, uint256 _quantity) external whenNotPaused onlyRole(MINTER_ROLE) {
-        _mint(_to, _id, _quantity, "");
+    function mint(address to, uint256 id, uint256 quantity) external whenNotPaused onlyRole(MINTER_ROLE) {
+        _mint(to, id, quantity, "");
     }
 
-    function burn(uint256 _id, uint256 _amount) external whenNotPaused {
-        _lockedTokens[_id] = false;
+    function burn(uint256 id, uint256 amount) external whenNotPaused {
+        _lockedTokens[id] = false;
 
-        _burn(msg.sender, _id, _amount);
+        _burn(msg.sender, id, amount);
     }
 
     function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _id,
-        uint256 _amount,
-        bytes memory _data
+        address from,
+        address to,
+        uint256 id,
+        uint256 amount,
+        bytes memory data
     ) public override whenNotPaused {
-        _lockedTokens[_id] = true;
+        _lockedTokens[id] = true;
 
-        super.safeTransferFrom(_from, _to, _id, _amount, _data);
+        super.safeTransferFrom(from, to, id, amount, data);
     }
 
     function safeBatchTransferFrom(
-        address _from,
-        address _to,
-        uint256[] memory _ids,
-        uint256[] memory _amounts,
-        bytes memory _data
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
     ) public override whenNotPaused {
-        for(uint256 i = 0; i < _ids.length; i++) {
-            _lockedTokens[_ids[i]] = true;
+        for(uint256 i = 0; i < ids.length; i++) {
+            _lockedTokens[ids[i]] = true;
         }
 
-        super.safeBatchTransferFrom(_from, _to, _ids, _amounts, _data);
+        super.safeBatchTransferFrom(from, to, ids, amounts, data);
     }
 
-    function isTokenLocked(uint256 _id) external view returns(bool) {
-        return _lockedTokens[_id];
+    function isTokenLocked(uint256 id) external view returns(bool) {
+        return _lockedTokens[id];
     }
+
+    function uri(uint256 id) public view override returns (string memory) {
+        // TODO: exist token
+
+        return string.concat(
+            _tokenURI,
+            Strings.toString(id),
+            ".json"
+        );
+    }
+
+    // function contractURI() public view returns (string memory) {
+    //     return _contractURI;
+    // } // TODO: убрать
 
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC1155, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
@@ -1974,13 +1995,24 @@ contract Token is ERC1155, AccessControl, Pausable {
     }
 
     /**
-     * @notice set new URI
-     * @param _URI new URI
+     * @notice set new token URI
+     * @param newTokenURI new token URI
      */
-    function setURI(string memory _URI) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _setURI(_URI);
+    function setTokenURI(string memory newTokenURI) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _tokenURI = newTokenURI;
+        _setURI(newTokenURI);
 
-        emit URISet(_URI);
+        emit TokenURISet(newTokenURI);
+    }
+
+    /**
+     * @notice set new contract URI
+     * @param newContractURI new contract URI
+     */
+    function setContractURI(string memory newContractURI) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        _setURI(newContractURI);
+
+        emit TokenURISet(newContractURI);
     }
 
     // endregion

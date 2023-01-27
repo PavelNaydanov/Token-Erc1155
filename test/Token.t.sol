@@ -5,16 +5,17 @@ import "forge-std/Test.sol";
 import "../src/Token.sol";
 
 contract TokenTest is Test {
-    string constant URI = "https://ipfs.io/ipfs/bafybeihjjkwdrxxjnuwevlqtqmh3iegcadc32sio4wmo7bv2gbf34qs34a";
+    string constant contractURI = "https://ipfs.io/ipfs/QmYyM3e2pTWXbhoo1wChPCaK1f5ZoXLuAvJ4Y9YkeyZ1E1";
+    string constant tokenURI = "https://ipfs.io/ipfs/bafybeihjjkwdrxxjnuwevlqtqmh3iegcadc32sio4wmo7bv2gbf34qs34a/";
 
     Token token;
 
     address minter = vm.addr(100);
 
-    event URISet(string URI);
+    event URISet(string tokenURI); // TODO: поправить и добавить событие для контракта
 
     function setUp() external {
-        token = new Token(URI);
+        token = new Token(contractURI, tokenURI);
 
         // set minter role
         token.grantRole(token.MINTER_ROLE(), minter);
@@ -25,9 +26,9 @@ contract TokenTest is Test {
     function test_deploy() external {
 
         vm.expectEmit(true, true, false, true);
-        emit URISet(URI);
+        emit URISet(tokenURI);
 
-        token = new Token(URI);
+        token = new Token(contractURI, tokenURI);
 
         assertTrue(token.hasRole(token.DEFAULT_ADMIN_ROLE(), address(this)));
     }
@@ -310,12 +311,12 @@ contract TokenTest is Test {
 
     // endregion
 
-    // region - Set URI -
+    // region - Set URI - // TODO: переименовать в setTokenURI
 
     function test_setURI() external {
         string memory newURI = "https://testURI";
 
-        token.setURI(newURI);
+        token.setTokenURI(newURI);
 
         assertEq(token.uri(1), newURI);
     }
@@ -327,7 +328,7 @@ contract TokenTest is Test {
         vm.expectRevert(_getAccessControlError(notAdmin, token.DEFAULT_ADMIN_ROLE()));
 
         vm.prank(notAdmin);
-        token.setURI(newURI);
+        token.setTokenURI(newURI);
     }
 
     // endregion
